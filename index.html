@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Becslős játék</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, #f8f9fa, #f8f9fa 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, #f8f9fa, #f8f9fa 1px, transparent 1px, transparent 40px);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .game-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            min-height: 80px;
+            align-items: center;
+        }
+
+        .dice {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dice:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dice.rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #ffeaa7, #fdcb6e);
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(253, 203, 110, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(145deg, #ff7675, #d63031);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(214, 48, 49, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .score-panel {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid #dee2e6;
+        }
+
+        .score-tabs {
+            display: flex;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .dice-count {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-table th {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .clear-history-btn {
+            margin-top: 15px;
+            background: linear-gradient(145deg, #ff7675, #d63031);
+            color: white;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 200px;
+            }
+
+            .history-table {
+                font-size: 0.9rem;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🎲 Becslős játék</h1>
+            <p class="game-subtitle">Feladat komplexitásától függően adj hozzá kockát (maximum 5 kocka)</p>
+            <p class="game-subtitle">Dobás után, ne felejtsd el felírni mire becsültél :)</p>
+        </div>
+
+        <div class="dice-count">
+            <span id="diceCount">0</span> / 5 dice
+        </div>
+
+        <div class="dice-container" id="diceContainer">
+            <!-- Dice will be added here dynamically -->
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-secondary" id="addDiceBtn">Add Dice</button>
+            <button class="btn btn-danger" id="removeDiceBtn" disabled>Remove Dice</button>
+            <button class="btn btn-primary" id="throwBtn" disabled>Throw Dice</button>
+        </div>
+
+        <div class="score-panel">
+            <div class="score-tabs">
+                <button class="tab active" data-tab="original">Original Score</button>
+                <button class="tab" data-tab="minus20">-20%</button>
+                <button class="tab" data-tab="plus20">+20%</button>
+            </div>
+            
+            <div class="tab-content">
+                <div class="score-value" id="scoreValue">-</div>
+                <div class="score-label" id="scoreLabel">Throw the dice to see your score</div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h2 class="history-title">Throw History</h2>
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Original</th>
+                        <th>-20%</th>
+                        <th>+20%</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- History rows will be added here -->
+                </tbody>
+            </table>
+            <div class="empty-history" id="emptyHistory">No throws yet. Start playing to see your history!</div>
+            <div class="controls">
+                <button class="btn clear-history-btn" id="clearHistoryBtn">Clear History</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        class DiceGame {
+            constructor() {
+                this.dice = [];
+                this.lastScore = 0;
+                this.maxDice = 5;
+                this.diceSymbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+                this.history = this.loadHistory();
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.updateUI();
+                this.renderHistoryTable();
+            }
+
+            initializeElements() {
+                this.diceContainer = document.getElementById('diceContainer');
+                this.addDiceBtn = document.getElementById('addDiceBtn');
+                this.removeDiceBtn = document.getElementById('removeDiceBtn');
+                this.throwBtn = document.getElementById('throwBtn');
+                this.diceCount = document.getElementById('diceCount');
+                this.scoreValue = document.getElementById('scoreValue');
+                this.scoreLabel = document.getElementById('scoreLabel');
+                this.notification = document.getElementById('notification');
+                this.tabs = document.querySelectorAll('.tab');
+                this.historyTableBody = document.getElementById('historyTableBody');
+                this.emptyHistory = document.getElementById('emptyHistory');
+                this.clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            }
+
+            bindEvents() {
+                this.addDiceBtn.addEventListener('click', () => this.addDice());
+                this.removeDiceBtn.addEventListener('click', () => this.removeDice());
+                this.throwBtn.addEventListener('click', () => this.throwDice());
+                this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+                
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+                });
+            }
+
+            addDice() {
+                if (this.dice.length < this.maxDice) {
+                    this.dice.push(1);
+                    this.updateUI();
+                    this.showNotification('Dice added!', 'success');
+                } else {
+                    this.showNotification('Maximum 5 dice allowed!', 'error');
+                }
+            }
+
+            removeDice() {
+                if (this.dice.length > 0) {
+                    this.dice.pop();
+                    this.updateUI();
+                    this.showNotification('Dice removed!', 'success');
+                }
+            }
+
+            throwDice() {
+                if (this.dice.length === 0) return;
+
+                // Add rolling animation
+                const diceElements = this.diceContainer.querySelectorAll('.dice');
+                diceElements.forEach(dice => dice.classList.add('rolling'));
+
+                setTimeout(() => {
+                    // Generate random values for each die
+                    this.dice = this.dice.map(() => Math.floor(Math.random() * 6) + 1);
+                    
+                    // Calculate total score
+                    this.lastScore = this.dice.reduce((sum, value) => sum + value, 0);
+                    
+                    // Add to history
+                    this.addToHistory(this.lastScore);
+                    
+                    // Update display
+                    this.updateDiceDisplay();
+                    this.updateScoreDisplay();
+                    
+                    // Remove rolling animation
+                    diceElements.forEach(dice => dice.classList.remove('rolling'));
+                    
+                    this.showNotification(`You rolled ${this.lastScore}!`, 'success');
+                }, 500);
+            }
+
+            addToHistory(originalScore) {
+                const minus20Score = Math.round(originalScore * 0.8);
+                const plus20Score = Math.round(originalScore * 1.2);
+                
+                const historyRecord = {
+                    id: Date.now(),
+                    originalScore,
+                    minus20Score,
+                    plus20Score,
+                    comment: '',
+                    timestamp: new Date().toLocaleString()
+                };
+                
+                this.history.unshift(historyRecord);
+                this.saveHistory();
+                this.renderHistoryTable();
+            }
+
+            updateComment(id, comment) {
+                const record = this.history.find(item => item.id === id);
+                if (record) {
+                    record.comment = comment;
+                    this.saveHistory();
+                    this.showNotification('Comment saved!', 'success');
+                }
+            }
+
+            clearHistory() {
+                if (this.history.length === 0) {
+                    this.showNotification('History is already empty!', 'error');
+                    return;
+                }
+                
+                if (confirm('Are you sure you want to clear all history?')) {
+                    this.history = [];
+                    this.saveHistory();
+                    this.renderHistoryTable();
+                    this.showNotification('History cleared!', 'success');
+                }
+            }
+
+            renderHistoryTable() {
+                if (this.history.length === 0) {
+                    this.historyTableBody.innerHTML = '';
+                    this.emptyHistory.style.display = 'block';
+                    return;
+                }
+                
+                this.emptyHistory.style.display = 'none';
+                
+                this.historyTableBody.innerHTML = '';
+                this.history.forEach((record, index) => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${record.originalScore}</td>
+                        <td>${record.minus20Score}</td>
+                        <td>${record.plus20Score}</td>
+                        <td>
+                            <input type="text" 
+                                   class="comment-input" 
+                                   value="${record.comment}" 
+                                   placeholder="Add a note..."
+                                   data-id="${record.id}">
+                        </td>
+                    `;
+                    
+                    this.historyTableBody.appendChild(row);
+                });
+                
+                // Add event listeners to comment inputs
+                const commentInputs = this.historyTableBody.querySelectorAll('.comment-input');
+                commentInputs.forEach(input => {
+                    input.addEventListener('blur', (e) => {
+                        const id = parseInt(e.target.dataset.id);
+                        this.updateComment(id, e.target.value);
+                    });
+                    
+                    // Also save on Enter key
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.target.blur();
+                        }
+                    });
+                });
+            }
+
+            loadHistory() {
+                const savedHistory = localStorage.getItem('diceGameHistory');
+                return savedHistory ? JSON.parse(savedHistory) : [];
+            }
+
+            saveHistory() {
+                localStorage.setItem('diceGameHistory', JSON.stringify(this.history));
+            }
+
+            updateUI() {
+                this.updateDiceDisplay();
+                this.updateButtons();
+                this.diceCount.textContent = this.dice.length;
+            }
+
+            updateDiceDisplay() {
+                this.diceContainer.innerHTML = '';
+                this.dice.forEach((value, index) => {
+                    const diceElement = document.createElement('div');
+                    diceElement.className = 'dice';
+                    diceElement.textContent = this.diceSymbols[value - 1];
+                    diceElement.title = `Die ${index + 1}: ${value}`;
+                    this.diceContainer.appendChild(diceElement);
+                });
+            }
+
+            updateButtons() {
+                this.addDiceBtn.disabled = this.dice.length >= this.maxDice;
+                this.removeDiceBtn.disabled = this.dice.length === 0;
+                this.throwBtn.disabled = this.dice.length === 0;
+            }
+
+            updateScoreDisplay() {
+                const activeTab = document.querySelector('.tab.active').dataset.tab;
+                this.displayScore(activeTab);
+            }
+
+            displayScore(type) {
+                let score, label;
+                
+                switch(type) {
+                    case 'original':
+                        score = this.lastScore;
+                        label = 'Original Score';
+                        break;
+                    case 'minus20':
+                        score = Math.round(this.lastScore * 0.8);
+                        label = 'Score -20%';
+                        break;
+                    case 'plus20':
+                        score = Math.round(this.lastScore * 1.2);
+                        label = 'Score +20%';
+                        break;
+                }
+                
+                this.scoreValue.textContent = this.lastScore > 0 ? score : '-';
+                this.scoreLabel.textContent = this.lastScore > 0 ? label : 'Throw the dice to see your score';
+            }
+
+            switchTab(tabType) {
+                // Update active tab
+                this.tabs.forEach(tab => tab.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabType}"]`).classList.add('active');
+                
+                // Update score display
+                this.displayScore(tabType);
+            }
+
+            showNotification(message, type = 'success') {
+                this.notification.textContent = message;
+                this.notification.className = `notification ${type}`;
+                this.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DiceGame();
+        });
+    </script>
+</body>
+</html>
